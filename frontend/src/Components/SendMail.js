@@ -12,6 +12,8 @@ import MoreVertOutlinedIcon from "@material-ui/icons/MoreVertOutlined";
 import DeleteIcon from "@material-ui/icons/Delete";
 import { useDispatch, useSelector } from "react-redux";
 import { defaultMail, selectSendMail } from "../features/emailSlice";
+import axios from "../axios";
+import { selectUser } from "../features/userSlice";
 
 function SendMail() {
   const dispatch = useDispatch();
@@ -19,6 +21,39 @@ function SendMail() {
   const [to, setTo] = useState("");
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const user = useSelector(selectUser);
+
+  const closeMail = () => {
+    dispatch(defaultMail());
+    setTo("");
+    setMessage("");
+    setSubject("");
+  };
+
+  const sendEmail = () => {
+    setLoading(true);
+    axios
+      .post("/new/mail", {
+        name: user.userName,
+        emailId: user.userEmail,
+        message: message,
+        timestamp: new Date().toUTCString(),
+        to: to,
+        subject: subject,
+        photoURL: user.photoURL,
+        attachments: {
+          attach: null,
+          copies: null,
+        },
+      })
+      .then((res) => {
+        setLoading(false);
+        closeMail();
+      })
+      .catch((err) => alert(err.message));
+  };
+
   return (
     <>
       {send ? (
@@ -27,10 +62,7 @@ function SendMail() {
             <span>New Message</span>
             <Close
               onClick={(e) => {
-                dispatch(defaultMail());
-                setTo("");
-                setMessage("");
-                setSubject("");
+                closeMail();
               }}
             />
           </SendTop>
@@ -56,7 +88,12 @@ function SendMail() {
           </SendBody>
           <SendBottom>
             <div>
-              <button>Send</button>
+              <button
+                disabled={!subject || !to ? true : false}
+                onClick={(e) => sendEmail()}
+              >
+                Send
+              </button>
               <FormatColorTextOutlinedIcon
                 style={{ marginRight: "10px", marginLeft: "10px" }}
               />
@@ -85,7 +122,7 @@ export default SendMail;
 const Container = styled.div`
   position: absolute;
   right: 0;
-  z-index: 200;
+  z-index: 500;
   top: 25%;
   width: 100%;
   max-width: 600px;

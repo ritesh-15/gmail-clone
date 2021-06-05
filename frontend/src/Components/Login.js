@@ -1,12 +1,33 @@
 import React from "react";
 import styled from "styled-components";
 import { auth, provider } from "../firebase";
+import { Redirect, useHistory } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { selectUser, setSignIn } from "../features/userSlice";
 
 function Login() {
-  const signIn = () => {};
+  const history = useHistory();
+  const dispatch = useDispatch();
+  const user = useSelector(selectUser);
+  const signIn = () => {
+    auth
+      .signInWithPopup(provider)
+      .then((data) => {
+        dispatch(
+          setSignIn({
+            userName: data.user.displayName,
+            photoURL: data.user.photoURL,
+            userEmail: data.user.email,
+          })
+        );
+        history.push("/");
+      })
+      .catch((err) => alert(err.message));
+  };
 
   return (
     <Container>
+      {user && <Redirect to="/" />}
       <Content>
         <img src="https://1000logos.net/wp-content/uploads/2018/05/Gmail-logo.jpg" />
         <button onClick={(e) => signIn()}>Sign In with google</button>

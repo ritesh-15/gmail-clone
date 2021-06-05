@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import Sidebar from "./Sidebar";
 import CheckBoxOutlineBlankIcon from "@material-ui/icons/CheckBoxOutlineBlank";
@@ -12,43 +12,157 @@ import GroupIcon from "@material-ui/icons/Group";
 import LocalOfferIcon from "@material-ui/icons/LocalOffer";
 import Mail from "./Mail";
 import SendMail from "./SendMail";
+import axios from "../axios";
+import { CircularProgress } from "@material-ui/core";
+import { useSelector } from "react-redux";
+import { selectUser } from "../features/userSlice";
+import { Redirect } from "react-router";
+import Description from "./Description";
+import ArrowBackIcon from "@material-ui/icons/ArrowBack";
+import ArchiveIcon from "@material-ui/icons/Archive";
+import ReportIcon from "@material-ui/icons/Report";
+import DeleteIcon from "@material-ui/icons/Delete";
+import MarkunreadIcon from "@material-ui/icons/Markunread";
+import ScheduleIcon from "@material-ui/icons/Schedule";
+import PlaylistAddCheckIcon from "@material-ui/icons/PlaylistAddCheck";
+import MoveToInboxIcon from "@material-ui/icons/MoveToInbox";
+import LabelIcon from "@material-ui/icons/Label";
+import AssignmentTurnedInIcon from "@material-ui/icons/AssignmentTurnedIn";
+import { Link } from "react-router-dom";
+import Loader from "./Loader";
+import Pusher from "pusher-js";
+import { RefreshOutlined } from "@material-ui/icons";
 
-function Home() {
+function Home({ hide }) {
+  const [emails, setEmails] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    syncFeed();
+  }, []);
+
+  const syncFeed = async () => {
+    setLoading(true);
+    await axios.get("/retrive/emails").then((res) => {
+      setEmails(res.data);
+      setLoading(false);
+    });
+  };
+
+  useEffect(() => {
+    const pusher = new Pusher("b73ad926175b0e118dcf", {
+      cluster: "ap2",
+    });
+
+    const channel = pusher.subscribe("emails");
+    channel.bind("inserted", (data) => {
+      setEmails([...emails, data]);
+    });
+
+    return () => {
+      channel.unsubscribe();
+      channel.unbind_all();
+    };
+  }, []);
+
+  const user = useSelector(selectUser);
+
+  const newEmails = emails.sort((a, b) => {
+    console.log(b - a);
+    return b.timestamp - a.timestamp;
+  });
+
+  console.log("new emails ", newEmails);
+
   return (
     <Container>
+      {!user && <Redirect to="/login" />}
       <Sidebar />
       <Main>
-        <MainTop>
-          <TopLeft>
-            <CheckBoxOutlineBlankIcon style={{ marginRight: "20px" }} />
-            <RefreshIcon style={{ marginRight: "20px" }} />
-            <MoreVertIcon style={{ marginRight: "20px" }} />
-          </TopLeft>
-          <TopRight>
-            <KeyboardArrowLeftIcon style={{ marginRight: "20px" }} />
-            <KeyboardArrowRight style={{ marginRight: "20px" }} />
-            <HorizontalSplitIcon style={{ marginRight: "20px" }} />
-          </TopRight>
-        </MainTop>
-        <MainMiddle>
-          <Primary>
-            <InboxOutlined />
-            <p>Primary</p>
-          </Primary>
-          <div>
-            <GroupIcon />
-            <p>Social</p>
-          </div>
-          <div>
-            <LocalOfferIcon />
-            <p>Pramotions</p>
-          </div>
-        </MainMiddle>
-        <MainBottom>
-          <Mail />
-          <Mail />
-          <Mail />
-        </MainBottom>
+        {hide ? (
+          <Details>
+            <DetailsTop>
+              <DetailTopRight>
+                <Link to="/" style={{ color: "inherit" }}>
+                  <ArrowBackIcon
+                    style={{ marginRight: "21px", cursor: "pointer" }}
+                  />
+                </Link>
+                <ArchiveIcon
+                  style={{ marginRight: "10px", cursor: "pointer" }}
+                />
+                <ReportIcon
+                  style={{ marginRight: "10px", cursor: "pointer" }}
+                />
+                <DeleteIcon
+                  style={{ marginRight: "10px", cursor: "pointer" }}
+                />
+                <MarkunreadIcon
+                  style={{ marginRight: "21px", cursor: "pointer" }}
+                />
+                <ScheduleIcon
+                  style={{ marginRight: "10px", cursor: "pointer" }}
+                />
+                <AssignmentTurnedInIcon
+                  style={{ marginRight: "21px", cursor: "pointer" }}
+                />
+                <MoveToInboxIcon
+                  style={{ marginRight: "10px", cursor: "pointer" }}
+                />
+                <LabelIcon style={{ marginRight: "10px", cursor: "pointer" }} />
+                <MoreVertIcon
+                  style={{ marginRight: "21px", cursor: "pointer" }}
+                />
+              </DetailTopRight>
+              <DetailTopLeft>
+                <KeyboardArrowLeftIcon
+                  style={{ marginRight: "10px", cursor: "pointer" }}
+                />
+                <KeyboardArrowRight
+                  style={{ marginRight: "10px", cursor: "pointer" }}
+                />
+              </DetailTopLeft>
+            </DetailsTop>
+            <Description />
+          </Details>
+        ) : (
+          <>
+            <MainTop>
+              <TopLeft>
+                <CheckBoxOutlineBlankIcon style={{ marginRight: "20px" }} />
+                <RefreshButton onClick={(e) => syncFeed()} />
+                <MoreVertIcon style={{ marginRight: "20px" }} />
+              </TopLeft>
+              <TopRight>
+                <KeyboardArrowLeftIcon style={{ marginRight: "20px" }} />
+                <KeyboardArrowRight style={{ marginRight: "20px" }} />
+                <HorizontalSplitIcon style={{ marginRight: "20px" }} />
+              </TopRight>
+            </MainTop>
+            <MainMiddle>
+              <Primary>
+                <InboxOutlined />
+                <p>Primary</p>
+              </Primary>
+              <div>
+                <GroupIcon />
+                <p>Social</p>
+              </div>
+              <div>
+                <LocalOfferIcon />
+                <p>Pramotions</p>
+              </div>
+            </MainMiddle>
+
+            <MainBottom>
+              {loading ? (
+                <Loader text={"emails"} />
+              ) : (
+                newEmails?.map((email) => <Mail key={email._id} info={email} />)
+              )}
+            </MainBottom>
+          </>
+        )}
         <SendMail />
       </Main>
     </Container>
@@ -88,6 +202,7 @@ const MainBottom = styled.div`
   flex: 0.94;
   width: 100%;
   overflow-y: scroll;
+  max-height: 560px;
   height: 100%;
 
   &::-webkit-scrollbar {
@@ -144,3 +259,29 @@ const Primary = styled.div`
     color: #d93025 !important;
   }
 `;
+
+const Details = styled.div`
+  display: flex;
+  flex-direction: column;
+  padding: 0px 20px;
+  position: relative;
+`;
+
+const DetailsTop = styled.div`
+  border-bottom: 1px solid #eceff1;
+  padding: 5px 0;
+  position: sticky;
+  top: 0;
+  display: flex;
+  justify-content: space-between;
+`;
+
+const DetailTopRight = styled.div`
+  color: #878a8d !important;
+`;
+
+const DetailTopLeft = styled.div`
+  color: #878a8d !important;
+`;
+
+const RefreshButton = styled(RefreshOutlined)``;

@@ -1,18 +1,37 @@
 import { Search } from "@material-ui/icons";
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import HelpOutlineOutlinedIcon from "@material-ui/icons/HelpOutlineOutlined";
 import SettingsOutlinedIcon from "@material-ui/icons/SettingsOutlined";
 import AppsOutlinedIcon from "@material-ui/icons/AppsOutlined";
 import { Avatar } from "@material-ui/core";
 import MenuOutlinedIcon from "@material-ui/icons/MenuOutlined";
+import { Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { selectUser, setSignOut } from "../features/userSlice";
+import { auth, provider } from "../firebase";
 
 function Header() {
+  const user = useSelector(selectUser);
+  const [show, setShow] = useState(false);
+  const dispatch = useDispatch();
+
+  const signOut = () => {
+    auth
+      .signOut()
+      .then(() => {
+        dispatch(setSignOut());
+      })
+      .catch((err) => alert(err.message));
+  };
+
   return (
     <Container>
       <HeaderRight>
         <Menu />
-        <img src="https://ssl.gstatic.com/ui/v1/icons/mail/rfr/logo_gmail_lockup_default_1x_r2.png" />
+        <Link to="/">
+          <img src="https://ssl.gstatic.com/ui/v1/icons/mail/rfr/logo_gmail_lockup_default_1x_r2.png" />
+        </Link>
       </HeaderRight>
       <HeaderSearch>
         <SearchIcon />
@@ -22,7 +41,22 @@ function Header() {
         <Help />
         <Setting />
         <App />
-        <Avatar />
+        <Profile
+          onMouseEnter={(e) => setShow(true)}
+          onMouseLeave={(e) => setShow(false)}
+          src={user?.photoURL}
+          alt={user?.name}
+        />
+        {show ? (
+          <OptionsDiv
+            onMouseEnter={(e) => setShow(true)}
+            onMouseLeave={(e) => setShow(false)}
+          >
+            <span onClick={signOut}>Log Out</span>
+          </OptionsDiv>
+        ) : (
+          ""
+        )}
       </HeaderLeft>
     </Container>
   );
@@ -41,7 +75,7 @@ const Container = styled.div`
   border-bottom: 1px solid lightgray;
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: 1000;
 `;
 
 const HeaderRight = styled.div`
@@ -98,6 +132,7 @@ const HeaderLeft = styled.div`
   display: flex;
   align-items: center;
   color: #5f6368;
+  position: relative;
 `;
 
 const Help = styled(HelpOutlineOutlinedIcon)`
@@ -136,5 +171,34 @@ const App = styled(AppsOutlinedIcon)`
 
   &:hover {
     background-color: #f1f3f4;
+  }
+`;
+
+const Profile = styled(Avatar)`
+  cursor: pointer;
+`;
+
+const OptionsDiv = styled.div`
+  position: absolute;
+  bottom: 0;
+  height: 50px;
+  top: 40px;
+  z-index: 10000 !important;
+  right: -5px;
+  display: flex;
+  align-items: center;
+  width: 100px;
+  justify-content: center;
+  color: #000;
+  border: 1px solid #ffffff;
+  border-radius: 8px;
+  box-shadow: -1px 4px 17px 0px rgba(219, 219, 219, 0.75);
+
+  &:hover {
+    border: 1px solid grey;
+  }
+
+  span {
+    cursor: pointer;
   }
 `;
