@@ -11,6 +11,8 @@ import VideocamIcon from "@material-ui/icons/Videocam";
 import CalendarTodayIcon from "@material-ui/icons/CalendarToday";
 import { useDispatch, useSelector } from "react-redux";
 import { selectSendMail, setSendMail } from "../features/emailSlice";
+import { Link } from "react-router-dom";
+import { selectMails } from "../features/mails";
 
 function Sidebar() {
   const dispatch = useDispatch();
@@ -20,6 +22,8 @@ function Sidebar() {
     dispatch(setSendMail());
   };
 
+  const mails = useSelector(selectMails);
+
   return (
     <Container>
       <Compose onClick={(e) => composeMail()}>
@@ -28,18 +32,26 @@ function Sidebar() {
       </Compose>
 
       <SidebarTop>
-        <SidebarIcons
-          icon={
-            <InboxOutlinedIcon
-              style={{ color: "#D93025", fontWeight: "800 !important" }}
-            />
-          }
-          text={"Inbox"}
-          backgroundColor="#FCE8E6"
-        />
-        <SidebarIcons icon={<StarOutlinedIcon />} text="Stared" />
+        <Link to="/">
+          <SidebarIcons
+            icon={
+              <InboxOutlinedIcon
+                style={{ color: "#D93025", fontWeight: "800 !important" }}
+              />
+            }
+            text={"Inbox"}
+            backgroundColor="#FCE8E6"
+            inbox={mails.length}
+          />
+        </Link>
+        <Link to="/star">
+          <SidebarIcons icon={<StarOutlinedIcon />} text="Stared" />
+        </Link>
         <SidebarIcons icon={<SnoozeOutlinedIcon />} text="Snoozed" />
-        <SidebarIcons icon={<SendOutlinedIcon />} text="Send" />
+        <Link to="/send">
+          {" "}
+          <SidebarIcons icon={<SendOutlinedIcon />} text="Send" />
+        </Link>
         <SidebarIcons icon={<DraftsOutlinedIcon />} text="Draft" />
         <SidebarIcons icon={<KeyboardArrowDownOutlinedIcon />} text="More" />
       </SidebarTop>

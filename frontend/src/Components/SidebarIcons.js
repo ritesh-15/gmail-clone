@@ -21,6 +21,7 @@ function SidebarIcons(props) {
       >
         {props.text}
       </span>
+      <p>{props.inbox}</p>
     </Container>
   );
 }
@@ -41,6 +42,12 @@ const Container = styled.div`
   span {
     margin-left: 10px;
     font-size: 16px;
+  }
+
+  p {
+    margin-left: auto;
+    color: #d93025;
+    font-weight: 600;
   }
   &:hover {
     background-color: "#F1F3F4" !important;

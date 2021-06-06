@@ -4,12 +4,13 @@ import styled from "styled-components";
 import HelpOutlineOutlinedIcon from "@material-ui/icons/HelpOutlineOutlined";
 import SettingsOutlinedIcon from "@material-ui/icons/SettingsOutlined";
 import AppsOutlinedIcon from "@material-ui/icons/AppsOutlined";
-import { Avatar } from "@material-ui/core";
+import { Avatar, LinearProgress } from "@material-ui/core";
 import MenuOutlinedIcon from "@material-ui/icons/MenuOutlined";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { selectUser, setSignOut } from "../features/userSlice";
 import { auth, provider } from "../firebase";
+import { selectRefresh, selectSending } from "../features/sendingMail";
 
 function Header() {
   const user = useSelector(selectUser);
@@ -25,44 +26,54 @@ function Header() {
       .catch((err) => alert(err.message));
   };
 
+  const refresh = useSelector(selectRefresh);
+
   return (
-    <Container>
-      <HeaderRight>
-        <Menu />
-        <Link to="/">
-          <img src="https://ssl.gstatic.com/ui/v1/icons/mail/rfr/logo_gmail_lockup_default_1x_r2.png" />
-        </Link>
-      </HeaderRight>
-      <HeaderSearch>
-        <SearchIcon />
-        <input type="text" placeholder="Search mail" />
-      </HeaderSearch>
-      <HeaderLeft>
-        <Help />
-        <Setting />
-        <App />
-        <Profile
-          onMouseEnter={(e) => setShow(true)}
-          onMouseLeave={(e) => setShow(false)}
-          src={user?.photoURL}
-          alt={user?.name}
-        />
-        {show ? (
-          <OptionsDiv
+    <>
+      <Container>
+        <HeaderRight>
+          <Menu />
+          <Link to="/">
+            <img src="https://ssl.gstatic.com/ui/v1/icons/mail/rfr/logo_gmail_lockup_default_1x_r2.png" />
+          </Link>
+        </HeaderRight>
+        <HeaderSearch>
+          <SearchIcon />
+          <input type="text" placeholder="Search mail" />
+        </HeaderSearch>
+        <HeaderLeft>
+          <Help />
+          <Setting />
+          <App />
+          <Profile
             onMouseEnter={(e) => setShow(true)}
             onMouseLeave={(e) => setShow(false)}
-          >
-            <span onClick={signOut}>Log Out</span>
-          </OptionsDiv>
-        ) : (
-          ""
-        )}
-      </HeaderLeft>
-    </Container>
+            src={user?.photoURL}
+            alt={user?.name}
+          />
+          {show ? (
+            <OptionsDiv
+              onMouseEnter={(e) => setShow(true)}
+              onMouseLeave={(e) => setShow(false)}
+            >
+              <span onClick={signOut}>Log Out</span>
+            </OptionsDiv>
+          ) : (
+            ""
+          )}
+        </HeaderLeft>
+      </Container>
+      {refresh && <Bar color="secondary" />}
+    </>
   );
 }
 
 export default Header;
+
+const Bar = styled(LinearProgress)`
+  background-color: #ffffff !important;
+  height: 2.5px !important;
+`;
 
 const Container = styled.div`
   width: 100%;

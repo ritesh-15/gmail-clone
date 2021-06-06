@@ -13,8 +13,8 @@ import LocalOfferIcon from "@material-ui/icons/LocalOffer";
 import Mail from "./Mail";
 import SendMail from "./SendMail";
 import axios from "../axios";
-import { CircularProgress } from "@material-ui/core";
-import { useSelector } from "react-redux";
+import { CircularProgress, LinearProgress } from "@material-ui/core";
+import { useDispatch, useSelector } from "react-redux";
 import { selectUser } from "../features/userSlice";
 import { Redirect } from "react-router";
 import Description from "./Description";
@@ -32,10 +32,23 @@ import { Link } from "react-router-dom";
 import Loader from "./Loader";
 import Pusher from "pusher-js";
 import { RefreshOutlined } from "@material-ui/icons";
+import {
+  setComplete,
+  setOnRefresh,
+  setRefresh,
+  setSending,
+  setStarRefresh,
+} from "../features/sendingMail";
+import { setNetwork, setUnsetNetwork } from "../features/networkSlice";
+import Send from "./Send";
+import { setMails } from "../features/mails";
+import Star from "./Star";
 
-function Home({ hide }) {
+function Home({ hide, send, star, desc, starHead }) {
   const [emails, setEmails] = useState([]);
   const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
+  const [sending, setSending] = useState(false);
 
   useEffect(() => {
     syncFeed();
@@ -46,6 +59,23 @@ function Home({ hide }) {
     await axios.get("/retrive/emails").then((res) => {
       setEmails(res.data);
       setLoading(false);
+      dispatch(setMails(res.data));
+    });
+  };
+
+  const refreshFeed = async () => {
+    const ifConnected = window.navigator.onLine;
+    if (ifConnected) {
+      dispatch(setUnsetNetwork());
+    } else {
+      dispatch(setNetwork());
+    }
+
+    dispatch(setRefresh());
+    await axios.get("/retrive/emails").then((res) => {
+      setEmails(res.data);
+      dispatch(setOnRefresh());
+      dispatch(setMails(res.data));
     });
   };
 
@@ -56,7 +86,7 @@ function Home({ hide }) {
 
     const channel = pusher.subscribe("emails");
     channel.bind("inserted", (data) => {
-      setEmails([...emails, data]);
+      refreshFeed();
     });
 
     return () => {
@@ -67,13 +97,6 @@ function Home({ hide }) {
 
   const user = useSelector(selectUser);
 
-  const newEmails = emails.sort((a, b) => {
-    console.log(b - a);
-    return b.timestamp - a.timestamp;
-  });
-
-  console.log("new emails ", newEmails);
-
   return (
     <Container>
       {!user && <Redirect to="/login" />}
@@ -82,38 +105,60 @@ function Home({ hide }) {
         {hide ? (
           <Details>
             <DetailsTop>
-              <DetailTopRight>
-                <Link to="/" style={{ color: "inherit" }}>
-                  <ArrowBackIcon
+              {send || starHead ? (
+                <TopLeft>
+                  <CheckBoxOutlineBlankIcon style={{ marginRight: "20px" }} />
+                  {send ? (
+                    <RefreshButton
+                      onClick={(e) => {
+                        refreshFeed();
+                      }}
+                    />
+                  ) : (
+                    <Refresh
+                      onClick={(e) => {
+                        dispatch(setStarRefresh());
+                      }}
+                    />
+                  )}
+                  <MoreVertIcon style={{ marginRight: "20px" }} />
+                </TopLeft>
+              ) : (
+                <DetailTopRight>
+                  <Link to="/" style={{ color: "inherit" }}>
+                    <ArrowBackIcon
+                      style={{ marginRight: "21px", cursor: "pointer" }}
+                    />
+                  </Link>
+                  <ArchiveIcon
+                    style={{ marginRight: "10px", cursor: "pointer" }}
+                  />
+                  <ReportIcon
+                    style={{ marginRight: "10px", cursor: "pointer" }}
+                  />
+                  <DeleteIcon
+                    style={{ marginRight: "10px", cursor: "pointer" }}
+                  />
+                  <MarkunreadIcon
                     style={{ marginRight: "21px", cursor: "pointer" }}
                   />
-                </Link>
-                <ArchiveIcon
-                  style={{ marginRight: "10px", cursor: "pointer" }}
-                />
-                <ReportIcon
-                  style={{ marginRight: "10px", cursor: "pointer" }}
-                />
-                <DeleteIcon
-                  style={{ marginRight: "10px", cursor: "pointer" }}
-                />
-                <MarkunreadIcon
-                  style={{ marginRight: "21px", cursor: "pointer" }}
-                />
-                <ScheduleIcon
-                  style={{ marginRight: "10px", cursor: "pointer" }}
-                />
-                <AssignmentTurnedInIcon
-                  style={{ marginRight: "21px", cursor: "pointer" }}
-                />
-                <MoveToInboxIcon
-                  style={{ marginRight: "10px", cursor: "pointer" }}
-                />
-                <LabelIcon style={{ marginRight: "10px", cursor: "pointer" }} />
-                <MoreVertIcon
-                  style={{ marginRight: "21px", cursor: "pointer" }}
-                />
-              </DetailTopRight>
+                  <ScheduleIcon
+                    style={{ marginRight: "10px", cursor: "pointer" }}
+                  />
+                  <AssignmentTurnedInIcon
+                    style={{ marginRight: "21px", cursor: "pointer" }}
+                  />
+                  <MoveToInboxIcon
+                    style={{ marginRight: "10px", cursor: "pointer" }}
+                  />
+                  <LabelIcon
+                    style={{ marginRight: "10px", cursor: "pointer" }}
+                  />
+                  <MoreVertIcon
+                    style={{ marginRight: "21px", cursor: "pointer" }}
+                  />
+                </DetailTopRight>
+              )}
               <DetailTopLeft>
                 <KeyboardArrowLeftIcon
                   style={{ marginRight: "10px", cursor: "pointer" }}
@@ -123,14 +168,16 @@ function Home({ hide }) {
                 />
               </DetailTopLeft>
             </DetailsTop>
-            <Description />
+            {desc && <Description />}
+            {send && <Send />}
+            {star && <Star />}
           </Details>
         ) : (
           <>
             <MainTop>
               <TopLeft>
                 <CheckBoxOutlineBlankIcon style={{ marginRight: "20px" }} />
-                <RefreshButton onClick={(e) => syncFeed()} />
+                <RefreshButton onClick={(e) => refreshFeed()} />
                 <MoreVertIcon style={{ marginRight: "20px" }} />
               </TopLeft>
               <TopRight>
@@ -139,28 +186,31 @@ function Home({ hide }) {
                 <HorizontalSplitIcon style={{ marginRight: "20px" }} />
               </TopRight>
             </MainTop>
-            <MainMiddle>
-              <Primary>
-                <InboxOutlined />
-                <p>Primary</p>
-              </Primary>
-              <div>
-                <GroupIcon />
-                <p>Social</p>
-              </div>
-              <div>
-                <LocalOfferIcon />
-                <p>Pramotions</p>
-              </div>
-            </MainMiddle>
-
-            <MainBottom>
-              {loading ? (
-                <Loader text={"emails"} />
-              ) : (
-                newEmails?.map((email) => <Mail key={email._id} info={email} />)
-              )}
-            </MainBottom>
+            <div>
+              <MainMiddle>
+                <Primary>
+                  <InboxOutlined />
+                  <p>Primary</p>
+                </Primary>
+                <div>
+                  <GroupIcon />
+                  <p>Social</p>
+                </div>
+                <div>
+                  <LocalOfferIcon />
+                  <p>Pramotions</p>
+                </div>
+              </MainMiddle>
+            </div>
+            <Bottom>
+              <MainBottom>
+                {loading ? (
+                  <Loader text={"emails"} />
+                ) : (
+                  emails?.map((email) => <Mail key={email._id} info={email} />)
+                )}
+              </MainBottom>
+            </Bottom>
           </>
         )}
         <SendMail />
@@ -170,6 +220,13 @@ function Home({ hide }) {
 }
 
 export default Home;
+
+const Refresh = styled(RefreshOutlined)``;
+
+const Bottom = styled.div`
+  width: 100%;
+  height: 100%;
+`;
 
 const Container = styled.div`
   display: flex;
@@ -183,6 +240,7 @@ const Main = styled.div`
   flex-direction: column;
   padding: 10px 0;
   position: relative;
+  z-index: 1;
 `;
 
 const MainTop = styled.div`
@@ -213,6 +271,7 @@ const MainBottom = styled.div`
 
 const TopLeft = styled.div`
   cursor: pointer;
+  color: #7f7f7f;
 `;
 
 const TopRight = styled(TopLeft)``;

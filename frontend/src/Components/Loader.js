@@ -19,6 +19,7 @@ const LoadingContainer = styled.div`
   align-items: center;
   width: 100%;
   height: 100%;
+  margin-top: -10%;
 
   span {
     margin-left: 30px;

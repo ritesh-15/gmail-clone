@@ -1,30 +1,72 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import CheckBoxOutlineBlankIcon from "@material-ui/icons/CheckBoxOutlineBlank";
 import StarOutlineIcon from "@material-ui/icons/StarOutline";
 import LabelImportantIcon from "@material-ui/icons/LabelImportant";
-import { Link } from "react-router-dom";
+import { Link, useHistory } from "react-router-dom";
+import axios from "../axios";
+import { selectUser } from "../features/userSlice";
+import { useSelector } from "react-redux";
+import { StarOutline } from "@material-ui/icons";
+import StarIcon from "@material-ui/icons/Star";
 
-function Mail({ info }) {
+function Mail({ info, hide }) {
+  const history = useHistory();
+  const [seen, setSeen] = useState(false);
+  const [star, setStar] = useState(false);
+
+  const user = useSelector(selectUser);
+
+  const setStarMessage = () => {
+    axios.post("/star/email", {
+      uid: user.userId,
+      _id: info._id,
+      name: user.userName,
+      emailId: user.userEmail,
+      to: info.to,
+      subject: info.subject,
+      message: info.message,
+      timestamp: new Date().toUTCString(),
+    });
+    setStar(true);
+  };
+
   return (
-    <Link to={`/mail/${info._id}`}>
-      <Container>
-        <RightContainer>
-          <CheckBoxOutlineBlankIcon style={{ marginRight: "10px" }} />
-          <StarOutlineIcon style={{ marginRight: "10px" }} />
-          <LabelImportantIcon
-            style={{ marginRight: "10px", color: "#F7CB4D" }}
+    <Container
+      style={
+        seen ? { backgroundColor: "lightgray" } : { backgroundColor: "#ffffff" }
+      }
+    >
+      <RightContainer>
+        <CheckBoxOutlineBlankIcon style={{ marginRight: "10px" }} />
+        {star ? (
+          <AddedStar style={{ marginRight: "10px" }} />
+        ) : !hide ? (
+          <Star
+            onClick={(e) => setStarMessage()}
+            style={{ marginRight: "10px" }}
           />
+        ) : (
+          <AddedStar style={{ marginRight: "10px" }} />
+        )}
+        <LabelImportantIcon style={{ marginRight: "10px", color: "#F7CB4D" }} />
+        <Link to={`/mail/${info._id}`} style={{ overflow: "hidden" }}>
           <span>{info.subject}</span>
-        </RightContainer>
-        <Content>{info.message}</Content>
-        <p>{new Date(info.timestamp).toLocaleTimeString()}</p>
-      </Container>
-    </Link>
+        </Link>
+      </RightContainer>
+      <Content>{info.message}</Content>
+      <p>{new Date(info.timestamp).toLocaleTimeString()}</p>
+    </Container>
   );
 }
 
 export default Mail;
+
+const AddedStar = styled(StarIcon)`
+  color: #f9d87a;
+`;
+
+const Star = styled(StarOutlineIcon)``;
 
 const Container = styled.div`
   width: 100%;
@@ -33,6 +75,7 @@ const Container = styled.div`
   border-top: 1px solid #eceff1;
   border-bottom: 1px solid #eceff1;
   border-radius: 6px;
+  z-index: 1;
   display: flex;
   align-items: center;
   color: #7f7f7f;
@@ -44,6 +87,7 @@ const Container = styled.div`
     font-size: 14px;
     color: grey;
     text-align: center;
+    z-index: 0;
   }
 
   &:hover {
@@ -61,8 +105,11 @@ const RightContainer = styled.div`
     font-size: 16px;
     font-weight: 600;
     color: #000;
-    text-transform: capitalize;
+    text-transform: none;
     word-wrap: wrap;
+    white-space: nowrap;
+    width: 100%;
+    overflow: hidden;
   }
 `;
 

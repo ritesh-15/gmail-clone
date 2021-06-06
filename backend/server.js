@@ -4,6 +4,7 @@ import bodyParser from "body-parser";
 import mongoose from "mongoose";
 import email from "./email.js";
 import Pusher from "pusher";
+import star from "./star.js";
 
 // EJmYHvcUPcHY4PSv
 
@@ -113,6 +114,33 @@ app.get("/get/email/:id", (req, res) => {
     }
     res.status(200).send(data);
   });
+});
+
+// get specific user
+
+app.post("/star/email", (req, res) => {
+  const body = req.body;
+  star.create(body, (err, data) => {
+    if (err) {
+      res.status(500).send(err.message);
+    }
+    res.status(201).send(data);
+  });
+});
+
+app.get("/star/:id", (req, res) => {
+  const id = req.params.id;
+  const sort = { timestamp: -1 };
+  db.collection("stars")
+    .find({ uid: id })
+    .sort(sort)
+    .toArray((err, data) => {
+      if (err) {
+        res.status(500).send(err.message);
+      } else {
+        res.status(200).send(data);
+      }
+    });
 });
 
 app.listen(port, () => console.log(`Connected on port ${port}`));

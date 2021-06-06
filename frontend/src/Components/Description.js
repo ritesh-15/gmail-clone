@@ -10,6 +10,7 @@ import ForwardIcon from "@material-ui/icons/Forward";
 import { useParams } from "react-router";
 import axios from "../axios";
 import Loader from "./Loader";
+import { LinearProgress } from "@material-ui/core";
 
 function Description() {
   const { id } = useParams();
@@ -30,9 +31,7 @@ function Description() {
   return (
     <>
       {loading ? (
-        <LoadingDiv>
-          <Loader />
-        </LoadingDiv>
+        <Bar color="secondary" />
       ) : (
         <Container>
           <Top>
@@ -53,7 +52,7 @@ function Description() {
                   <AttachmentIcon
                     style={{ marginRight: "20px", color: "#878A8D" }}
                   />
-                  <p>{data?.timestamp}</p>
+                  <p>{data && new Date(data.timestamp).toLocaleTimeString()}</p>
                   <StarOutlineIcon
                     style={{ marginRight: "20px", color: "#878A8D" }}
                   />
@@ -90,6 +89,11 @@ function Description() {
 
 export default Description;
 
+const Bar = styled(LinearProgress)`
+  background-color: #ffffff !important;
+  height: 2px !important;
+`;
+
 const LoadingDiv = styled.div`
   display: flex;
   width: 100%;
@@ -100,10 +104,10 @@ const LoadingDiv = styled.div`
 `;
 
 const Container = styled.div`
-  padding: 20px;
+  padding: 20px 0;
   /* display: flex;
   flex-direction: column; */
-  max-height: 100%;
+  height: 100%;
   overflow-y: scroll;
 
   &::-webkit-scrollbar {
@@ -116,6 +120,7 @@ const Content = styled.div`
   width: 100%;
   align-items: flex-start;
   margin-top: 30px;
+  height: 100%;
 `;
 
 const Top = styled.div`
@@ -140,6 +145,7 @@ const ImgDiv = styled.div`
 
 const EmailInfo = styled.div`
   flex: 0.95;
+  height: 100%;
 
   span {
     display: flex;
@@ -188,6 +194,7 @@ const Actions = styled.div`
     align-items: center;
     cursor: pointer;
     transition: all 160ms ease-in;
+    height: fit-content;
     span {
       margin-left: 10px;
     }

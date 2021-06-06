@@ -14,6 +14,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { defaultMail, selectSendMail } from "../features/emailSlice";
 import axios from "../axios";
 import { selectUser } from "../features/userSlice";
+import {
+  selectSending,
+  setComplete,
+  setSending,
+} from "../features/sendingMail";
+import { LinearProgress } from "@material-ui/core";
 
 function SendMail() {
   const dispatch = useDispatch();
@@ -32,7 +38,7 @@ function SendMail() {
   };
 
   const sendEmail = () => {
-    setLoading(true);
+    dispatch(setSending());
     axios
       .post("/new/mail", {
         name: user.userName,
@@ -42,17 +48,20 @@ function SendMail() {
         to: to,
         subject: subject,
         photoURL: user.photoURL,
+        uid: user.userId,
         attachments: {
           attach: null,
           copies: null,
         },
       })
       .then((res) => {
-        setLoading(false);
+        dispatch(setComplete());
         closeMail();
       })
       .catch((err) => alert(err.message));
   };
+
+  const sending = useSelector(selectSending);
 
   return (
     <>
@@ -66,6 +75,7 @@ function SendMail() {
               }}
             />
           </SendTop>
+
           <SendBody>
             <input
               type="email"
@@ -85,6 +95,7 @@ function SendMail() {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
             />
+            {sending && <Bar color="primary" />}
           </SendBody>
           <SendBottom>
             <div>
@@ -118,6 +129,11 @@ function SendMail() {
 }
 
 export default SendMail;
+
+const Bar = styled(LinearProgress)`
+  background-color: #ffffff !important;
+  height: 3px;
+`;
 
 const Container = styled.div`
   position: absolute;
@@ -172,6 +188,7 @@ const SendBottom = styled.div`
   padding: 6px 10px;
   justify-content: space-between;
   margin-bottom: 10px;
+  z-index: 100 !important;
 
   div {
     display: flex;
