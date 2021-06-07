@@ -49,6 +49,7 @@ function SendMail() {
         subject: subject,
         photoURL: user.photoURL,
         uid: user.userId,
+        stared: false,
         attachments: {
           attach: null,
           copies: null,

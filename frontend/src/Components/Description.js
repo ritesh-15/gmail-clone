@@ -11,13 +11,24 @@ import { useParams } from "react-router";
 import axios from "../axios";
 import Loader from "./Loader";
 import { LinearProgress } from "@material-ui/core";
+import { useDispatch, useSelector } from "react-redux";
+import { selectUser } from "../features/userSlice";
+import StarIcon from "@material-ui/icons/Star";
+import { setStarRefresh } from "../features/sendingMail";
 
 function Description() {
   const { id } = useParams();
   const [data, setData] = useState();
   const [loading, setLoading] = useState(false);
+  const user = useSelector(selectUser);
+  const [added, setAdded] = useState(false);
+  const dispatch = useDispatch();
 
   useEffect(() => {
+    sync();
+  }, [id]);
+
+  const sync = () => {
     setLoading(true);
     axios
       .get(`/get/email/${id}`)
@@ -26,7 +37,58 @@ function Description() {
         setData(res.data);
       })
       .catch((err) => console.log(err.Message));
-  }, [id]);
+  };
+
+  const update = () => {
+    axios
+      .get(`/get/email/${id}`)
+      .then((res) => {
+        setData(res.data);
+      })
+      .catch((err) => console.log(err.Message));
+  };
+
+  const addToStar = () => {
+    axios
+      .post("/star/email", {
+        uid: user.userId,
+        _id: data._id,
+        name: user.userName,
+        emailId: user.userEmail,
+        to: data.to,
+        subject: data.subject,
+        message: data.message,
+        timestamp: new Date().toUTCString(),
+      })
+      .then((res) => setAdded(true))
+      .catch((err) => {
+        setAdded(false);
+        console.log(err.message);
+      });
+
+    axios
+      .get(`/stared/set/${data?._id}`)
+      .then((res) => update())
+      .catch((err) => console.log(err));
+  };
+
+  const removeFromStar = () => {
+    axios
+      .get(`/star/delete/${data._id}`)
+      .then((res) => {
+        dispatch(setStarRefresh());
+        setAdded(false);
+      })
+      .catch((err) => {
+        console.log(err.message);
+        setAdded(true);
+      });
+
+    axios
+      .get(`/stared/unset/${data?._id}`)
+      .then((res) => update())
+      .catch((err) => console.log(err));
+  };
 
   return (
     <>
@@ -53,9 +115,21 @@ function Description() {
                     style={{ marginRight: "20px", color: "#878A8D" }}
                   />
                   <p>{data && new Date(data.timestamp).toLocaleTimeString()}</p>
-                  <StarOutlineIcon
-                    style={{ marginRight: "20px", color: "#878A8D" }}
-                  />
+                  {user?.userId !== data?.uid ? (
+                    data?.stared ? (
+                      <AddedStar
+                        style={{ marginRight: "20px", color: "#878A8D" }}
+                        onClick={removeFromStar}
+                      />
+                    ) : (
+                      <StarOutlineIcon
+                        style={{ marginRight: "20px", color: "#878A8D" }}
+                        onClick={addToStar}
+                      />
+                    )
+                  ) : (
+                    ""
+                  )}
                   <ReplyIcon
                     style={{ marginRight: "20px", color: "#878A8D" }}
                   />
@@ -91,7 +165,11 @@ export default Description;
 
 const Bar = styled(LinearProgress)`
   background-color: #ffffff !important;
-  height: 2px !important;
+  height: 2.5px !important;
+`;
+
+const AddedStar = styled(StarIcon)`
+  color: #f7cb4d !important;
 `;
 
 const LoadingDiv = styled.div`
@@ -155,6 +233,7 @@ const EmailInfo = styled.div`
     div {
       display: flex;
       align-items: center;
+      cursor: pointer;
 
       p {
         margin-right: 20px;

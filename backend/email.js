@@ -10,6 +10,7 @@ const email = mongoose.Schema({
   attachments: Object,
   photoURL: String,
   uid: String,
+  stared: Boolean,
 });
 
 export default mongoose.model("emails", email);

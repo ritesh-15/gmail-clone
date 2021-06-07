@@ -10,9 +10,23 @@ import { selectMails } from "../features/mails";
 function Send() {
   const [loading, setLoading] = useState(false);
 
-  const mails = useSelector(selectMails);
+  const [mails, setMails] = useState([]);
 
   const user = useSelector(selectUser);
+
+  useEffect(() => {
+    setLoading(true);
+    axios
+      .get(`/send/email/${user?.userId}`)
+      .then((res) => {
+        setMails(res.data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.log(err);
+        setLoading(false);
+      });
+  }, []);
 
   return (
     <Container>
@@ -31,5 +45,5 @@ export default Send;
 const Container = styled.div``;
 const Bar = styled(LinearProgress)`
   background-color: #ffffff !important;
-  height: 2px;
+  height: 2.5px !important;
 `;

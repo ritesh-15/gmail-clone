@@ -52,6 +52,11 @@ db.once("open", () => {
         emailId: emailDetails.emailId,
         message: emailDetails.message,
       });
+    } else if (change.operationType === "update") {
+      const changeDetails = change.updateDescription;
+      pusher.trigger("emails", "updated", {
+        stared: changeDetails.updatedFields.stared,
+      });
     } else {
       console.log("Error while triggering pusher!!!");
     }
@@ -89,6 +94,19 @@ app.get("/retrive/emails", (req, res) => {
     });
 });
 
+// get the send email of each user
+
+app.get("/send/email/:id", (req, res) => {
+  const id = req.params.id;
+  const sort = { timestamp: -1 };
+  email.find({ uid: id }, (err, data) => {
+    if (err) {
+      res.status(500).send(err.message);
+    }
+    res.status(200).send(data);
+  });
+});
+
 app.get("/sort/data", (req, res) => {
   const sort = { timestamp: -1 };
   db.collection("emails")
@@ -103,6 +121,27 @@ app.get("/sort/data", (req, res) => {
     });
 });
 
+// update the stared
+app.get("/stared/set/:id", (req, res) => {
+  const id = req.params.id;
+  email.updateOne({ _id: id }, { $set: { stared: true } }, (err, data) => {
+    if (err) {
+      res.status(404).send(err.message);
+    }
+    res.status(200).send(data);
+  });
+});
+
+app.get("/stared/unset/:id", (req, res) => {
+  const id = req.params.id;
+  email.updateOne({ _id: id }, { $set: { stared: false } }, (err, data) => {
+    if (err) {
+      res.status(404).send(err.message);
+    }
+    res.status(200).send(data);
+  });
+});
+
 // get specific email
 
 app.get("/get/email/:id", (req, res) => {
@@ -110,7 +149,7 @@ app.get("/get/email/:id", (req, res) => {
 
   email.findById({ _id: id }, (err, data) => {
     if (err) {
-      res.status(500).send(err.message);
+      res.status(404).send(err.message);
     }
     res.status(200).send(data);
   });
@@ -141,6 +180,18 @@ app.get("/star/:id", (req, res) => {
         res.status(200).send(data);
       }
     });
+});
+
+// delete from star database
+
+app.get("/star/delete/:id", (req, res) => {
+  const id = req.params.id;
+  star.deleteOne({ _id: id }, (err, data) => {
+    if (err) {
+      res.status(500).send(err.message);
+    }
+    res.status(200).send(data);
+  });
 });
 
 app.listen(port, () => console.log(`Connected on port ${port}`));

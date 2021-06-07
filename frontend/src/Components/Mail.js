@@ -6,9 +6,10 @@ import LabelImportantIcon from "@material-ui/icons/LabelImportant";
 import { Link, useHistory } from "react-router-dom";
 import axios from "../axios";
 import { selectUser } from "../features/userSlice";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { StarOutline } from "@material-ui/icons";
 import StarIcon from "@material-ui/icons/Star";
+import { setStarRefresh } from "../features/sendingMail";
 
 function Mail({ info, hide }) {
   const history = useHistory();
@@ -17,18 +18,45 @@ function Mail({ info, hide }) {
 
   const user = useSelector(selectUser);
 
+  const dispatch = useDispatch();
+
   const setStarMessage = () => {
-    axios.post("/star/email", {
-      uid: user.userId,
-      _id: info._id,
-      name: user.userName,
-      emailId: user.userEmail,
-      to: info.to,
-      subject: info.subject,
-      message: info.message,
-      timestamp: new Date().toUTCString(),
-    });
-    setStar(true);
+    axios
+      .post("/star/email", {
+        uid: user.userId,
+        _id: info._id,
+        name: user.userName,
+        emailId: user.userEmail,
+        to: info.to,
+        subject: info.subject,
+        message: info.message,
+        timestamp: new Date().toUTCString(),
+      })
+      .then((res) => res.data)
+      .catch((err) => {
+        console.log(err.message);
+      });
+
+    axios
+      .get(`/stared/set/${info._id}`)
+      .then((res) => console.log(res))
+      .catch((err) => console.log(err));
+  };
+
+  const removeFromStar = () => {
+    axios
+      .get(`/star/delete/${info._id}`)
+      .then((res) => {
+        dispatch(setStarRefresh());
+      })
+      .catch((err) => {
+        console.log(err.message);
+      });
+
+    axios
+      .get(`/stared/unset/${info._id}`)
+      .then((res) => console.log(res))
+      .catch((err) => console.log(err));
   };
 
   return (
@@ -38,18 +66,32 @@ function Mail({ info, hide }) {
       }
     >
       <RightContainer>
-        <CheckBoxOutlineBlankIcon style={{ marginRight: "10px" }} />
-        {star ? (
-          <AddedStar style={{ marginRight: "10px" }} />
-        ) : !hide ? (
-          <Star
-            onClick={(e) => setStarMessage()}
-            style={{ marginRight: "10px" }}
+        <IconDivRight>
+          <CheckBoxOutlineBlankIcon style={{ marginRight: "10px" }} />
+          {user?.userId !== info.uid ? (
+            info.stared ? (
+              <AddedStar
+                onClick={removeFromStar}
+                style={{ marginRight: "10px" }}
+              />
+            ) : !hide ? (
+              <Star
+                onClick={(e) => setStarMessage()}
+                style={{ marginRight: "10px" }}
+              />
+            ) : (
+              <AddedStar
+                onClick={removeFromStar}
+                style={{ marginRight: "10px" }}
+              />
+            )
+          ) : (
+            "   "
+          )}
+          <LabelImportantIcon
+            style={{ marginRight: "10px", color: "#F7CB4D" }}
           />
-        ) : (
-          <AddedStar style={{ marginRight: "10px" }} />
-        )}
-        <LabelImportantIcon style={{ marginRight: "10px", color: "#F7CB4D" }} />
+        </IconDivRight>
         <Link to={`/mail/${info._id}`} style={{ overflow: "hidden" }}>
           <span>{info.subject}</span>
         </Link>
@@ -61,6 +103,12 @@ function Mail({ info, hide }) {
 }
 
 export default Mail;
+
+const IconDivRight = styled.div`
+  min-width: 100px;
+  display: flex;
+  align-items: center;
+`;
 
 const AddedStar = styled(StarIcon)`
   color: #f9d87a;
@@ -88,10 +136,14 @@ const Container = styled.div`
     color: grey;
     text-align: center;
     z-index: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    justify-self: flex-end;
+    min-width: 100px;
   }
 
   &:hover {
-    transform: scale(1.012);
+    transform: scale(1.015);
     box-shadow: -1px 2px 10px 2px rgba(229, 229, 229, 0.75);
   }
 `;

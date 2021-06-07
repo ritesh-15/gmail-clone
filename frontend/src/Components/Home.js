@@ -63,6 +63,16 @@ function Home({ hide, send, star, desc, starHead }) {
     });
   };
 
+  const updateFeed = () => {
+    axios
+      .get("/retrive/emails")
+      .then((res) => {
+        setEmails(res.data);
+        dispatch(setMails(res.data));
+      })
+      .catch((err) => console.log(err));
+  };
+
   const refreshFeed = async () => {
     const ifConnected = window.navigator.onLine;
     if (ifConnected) {
@@ -87,6 +97,10 @@ function Home({ hide, send, star, desc, starHead }) {
     const channel = pusher.subscribe("emails");
     channel.bind("inserted", (data) => {
       refreshFeed();
+    });
+
+    channel.bind("updated", (data) => {
+      updateFeed();
     });
 
     return () => {

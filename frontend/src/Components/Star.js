@@ -26,14 +26,24 @@ function Star() {
       setStarMails(res.data);
       setLoading(false);
     });
+
+    return 1;
   };
 
   const refresh = useSelector(selectStarRefresh);
+  if (refresh) {
+    const run = Sync();
+    dispatch(setStarRefreshComplete());
+  }
 
   return (
     <Container>
-      {refresh && (Sync(), dispatch(setStarRefreshComplete()))}
-      {loading && <LinearProgress color="secondary" />}
+      {loading ? <Bar color="secondary" /> : ""}
+      {starMails.length == 0 && (
+        <Message>
+          <p>No stared mails found</p>
+        </Message>
+      )}
       {starMails.map((mail) => (
         <Mail info={mail} hide />
       ))}
@@ -42,5 +52,26 @@ function Star() {
 }
 
 export default Star;
+
+const Message = styled.div`
+  width: 100%;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  p {
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    margin-top: 20%;
+    font-size: 18px;
+  }
+`;
+
+const Bar = styled(LinearProgress)`
+  background-color: #ffffff !important;
+  height: 2.5px !important;
+`;
 
 const Container = styled.div``;
