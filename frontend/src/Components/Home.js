@@ -56,11 +56,14 @@ function Home({ hide, send, star, desc, starHead }) {
 
   const syncFeed = async () => {
     setLoading(true);
-    await axios.get("/retrive/emails").then((res) => {
-      setEmails(res.data);
-      setLoading(false);
-      dispatch(setMails(res.data));
-    });
+    await axios
+      .get("/retrive/emails")
+      .then((res) => {
+        setEmails(res.data);
+        setLoading(false);
+        dispatch(setMails(res.data));
+      })
+      .catch((err) => alert(err));
   };
 
   const updateFeed = () => {
@@ -70,7 +73,7 @@ function Home({ hide, send, star, desc, starHead }) {
         setEmails(res.data);
         dispatch(setMails(res.data));
       })
-      .catch((err) => console.log(err));
+      .catch((err) => alert(err));
   };
 
   const refreshFeed = async () => {
@@ -82,11 +85,14 @@ function Home({ hide, send, star, desc, starHead }) {
     }
 
     dispatch(setRefresh());
-    await axios.get("/retrive/emails").then((res) => {
-      setEmails(res.data);
-      dispatch(setOnRefresh());
-      dispatch(setMails(res.data));
-    });
+    await axios
+      .get("/retrive/emails")
+      .then((res) => {
+        setEmails(res.data);
+        dispatch(setOnRefresh());
+        dispatch(setMails(res.data));
+      })
+      .catch((err) => alert(err));
   };
 
   useEffect(() => {
@@ -244,7 +250,7 @@ const Bottom = styled.div`
 
 const Container = styled.div`
   display: flex;
-  width: 100%;
+  width: 100vw !important;
   min-height: 100vh;
 `;
 
@@ -255,6 +261,8 @@ const Main = styled.div`
   padding: 10px 0;
   position: relative;
   z-index: 1;
+  width: 100%;
+  max-width: 100%;
 `;
 
 const MainTop = styled.div`
@@ -267,6 +275,7 @@ const MainTop = styled.div`
   padding: 5px 20px;
   border-bottom: 1px solid #eceff1;
   z-index: 100;
+  width: 100%;
 `;
 
 const MainBottom = styled.div`

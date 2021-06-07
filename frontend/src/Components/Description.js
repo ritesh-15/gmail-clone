@@ -106,11 +106,17 @@ function Description() {
             </ImgDiv>
             <EmailInfo>
               <span>
-                <div>
-                  <h5>{data?.name}</h5>
-                  <p>{data?.emailId}</p>
-                </div>
-                <div>
+                <InfoDiv>
+                  <NameDiv>
+                    <h5>{data?.name}</h5>
+                    <p>{"<" + data?.emailId + ">"}</p>
+                  </NameDiv>
+                  <ToDiv>
+                    <p>To</p>
+                    <p>{data?.to}</p>
+                  </ToDiv>
+                </InfoDiv>
+                <DescLeftIcon>
                   <AttachmentIcon
                     style={{ marginRight: "20px", color: "#878A8D" }}
                   />
@@ -136,7 +142,7 @@ function Description() {
                   <MoreVertIcon
                     style={{ marginRight: "20px", color: "#878A8D" }}
                   />
-                </div>
+                </DescLeftIcon>
               </span>
               <Message>{data?.message}</Message>
               <Actions>
@@ -162,6 +168,22 @@ function Description() {
 }
 
 export default Description;
+
+const NameDiv = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+`;
+
+const ToDiv = styled.div`
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+  p {
+    margin-left: 0 !important;
+    margin-right: 10px;
+  }
+`;
 
 const Bar = styled(LinearProgress)`
   background-color: #ffffff !important;
@@ -230,16 +252,6 @@ const EmailInfo = styled.div`
     align-items: center;
     justify-content: space-between;
 
-    div {
-      display: flex;
-      align-items: center;
-      cursor: pointer;
-
-      p {
-        margin-right: 20px;
-      }
-    }
-
     h5 {
       font-size: 18px;
       letter-spacing: 1.02px;
@@ -281,5 +293,17 @@ const Actions = styled.div`
     &:hover {
       background-color: rgba(249, 249, 249, 1);
     }
+  }
+`;
+
+const InfoDiv = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+`;
+
+const DescLeftIcon = styled(NameDiv)`
+  p {
+    margin-right: 20px;
   }
 `;

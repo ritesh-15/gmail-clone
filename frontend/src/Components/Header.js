@@ -84,8 +84,6 @@ const Container = styled.div`
   padding: 0 20px;
   justify-content: space-between;
   border-bottom: 1px solid lightgray;
-  position: sticky;
-  top: 0;
   z-index: 1000;
 `;
 

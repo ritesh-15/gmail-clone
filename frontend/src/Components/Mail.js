@@ -108,6 +108,7 @@ const IconDivRight = styled.div`
   min-width: 100px;
   display: flex;
   align-items: center;
+  justify-content: space-between;
 `;
 
 const AddedStar = styled(StarIcon)`
@@ -118,7 +119,8 @@ const Star = styled(StarOutlineIcon)``;
 
 const Container = styled.div`
   width: 100%;
-  padding: 6px 20px;
+  padding: 6px 0px;
+  padding-left: 20px;
   background-color: #ffffff;
   border-top: 1px solid #eceff1;
   border-bottom: 1px solid #eceff1;
@@ -130,6 +132,7 @@ const Container = styled.div`
   justify-content: space-between;
   transition: all 160ms ease-in;
   cursor: pointer;
+
   p {
     font-weight: 600;
     font-size: 14px;
@@ -139,7 +142,8 @@ const Container = styled.div`
     white-space: nowrap;
     overflow: hidden;
     justify-self: flex-end;
-    min-width: 100px;
+    width: 100%;
+    max-width: 200px;
   }
 
   &:hover {
@@ -152,7 +156,7 @@ const RightContainer = styled.div`
   display: flex;
   align-items: center;
   max-width: 400px;
-  min-width: 400px;
+  width: 100%;
   span {
     font-size: 16px;
     font-weight: 600;

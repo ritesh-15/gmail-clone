@@ -83,6 +83,7 @@ function SendMail() {
               placeholder="To"
               value={to}
               onChange={(e) => setTo(e.target.value)}
+              required
             />
             <input
               type="text"

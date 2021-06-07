@@ -13,7 +13,21 @@ import star from "./star.js";
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(bodyParser.json());
 const port = process.env.PORT || 9000;
+
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, OPTIONS, PUT, PATCH, DELETE"
+  );
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept"
+  );
+  next();
+});
 
 const pusher = new Pusher({
   appId: "1214907",
@@ -103,6 +117,9 @@ app.get("/send/email/:id", (req, res) => {
     if (err) {
       res.status(500).send(err.message);
     }
+    data.sort((b, a) => {
+      return a.timestamp - b.timestamp;
+    });
     res.status(200).send(data);
   });
 });
